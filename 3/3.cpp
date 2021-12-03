@@ -7,15 +7,25 @@
 #pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
 
 #define MAXLINE 50000
-#define LEN 5
+#define LEN 12
 
 using namespace std;
 
+bool getMostBit(uint32_t pos, bool isOx);
+uint32_t elimWithoutBit(bool bit, uint32_t pos, bool isOx);
+uint32_t getLeft(bool isOx);
+void printLeft(bool isOx);
+
+bool bin_array[MAXLINE][LEN];
+bool array_ox[MAXLINE] = { false };
+bool array_co2[MAXLINE] = { false };
+uint32_t ox_ok = 0;
+uint32_t co2_ok = 0;
+uint32_t array_num = 0;
+
 int main()
 {
-    bool array[MAXLINE][LEN];
-    bool array_ox[MAXLINE] = { true };
-   uint32_t array_num = 0;
+
     while (1)
     {
         string line;
@@ -28,11 +38,11 @@ int main()
             {
                 if (line[i] == '0')
                 {
-                    array[array_num][i] = false;
+                    bin_array[array_num][i] = false;
                 }
                 else
                 {
-                    array[array_num][i] = true;
+                    bin_array[array_num][i] = true;
                 }
                 
             }
@@ -46,8 +56,7 @@ int main()
     
     /*uint32_t gamma = 0;
     uint32_t eps = 0;*/
-    bool res[LEN] = { false };
-
+    /*
     for (uint32_t i = 0;i < LEN;i++)
     {
         uint32_t one = 0;
@@ -66,11 +75,6 @@ int main()
 
         if (one > zero)
         {
-            res[LEN - 1 - i] = true;
-        }
-
-        /*if (one > zero)
-        {
             gamma |= (1 << (LEN - 1-i));
         }
         else if (one == zero)
@@ -80,41 +84,153 @@ int main()
         else
         {
             eps |= (1 << (LEN - 1 - i));
-        }*/
-    }
+        }
+    }*/
+
+
     
 
     /*double result = gamma * eps;
     auto x = 0;*/
 
-    uint32_t ox_ok = array_num;
+    for(uint32_t j = 0;j < array_num;j++)
+    {
+        array_ox[j] = true;
+        array_co2[j] = true;
+    }
+
+    ox_ok = array_num;
+    co2_ok = array_num;
+
+    uint32_t ox = 0;
+    uint32_t co2 = 0;
 
     for (uint32_t i = 0;i < LEN;i++)
     {
-        for (uint32_t j = 0;j < array_num;j++)
+        bool mostBit = getMostBit(i, true);
+        uint32_t left = elimWithoutBit(mostBit, i, true);
+
+        printf("left = %d\n",left);
+        printLeft(true);
+        printf("\n");
+        if (left == 1)
         {
-            if(array[j][i] != res[i])
+            ox = getLeft(true);
+            break;
+        }
+    }
+
+    for (uint32_t i = 0;i < LEN;i++)
+    {
+        bool leastBit = !getMostBit(i, false);
+        uint32_t left = elimWithoutBit(leastBit, i, false);
+
+        /*printf("left = %d\n",left);
+        printLeft(false);
+        printf("\n");*/
+        if (left == 1)
+        {
+            co2 = getLeft(false);
+            break;
+        }
+    }
+
+    double result = ox * co2;
+
+    printf("Result = %f", result);
+
+
+
+
+
+
+
+
+}
+
+bool getMostBit(uint32_t pos, bool isOx)
+{
+    uint32_t one = 0, zero = 0;
+    for (uint32_t j = 0;j < array_num;j++)
+    {
+        if ((isOx && array_ox[j]) || (!isOx && array_co2[j]))
+        {
+            if (bin_array[j][pos])
+            {
+                one++;
+            }
+            else
+            {
+                zero++;
+            }
+        }
+    }
+    return (one >= zero);
+}
+
+uint32_t elimWithoutBit(bool bit, uint32_t pos, bool isOx)
+{
+    for (uint32_t j = 0;j < array_num;j++)
+    {
+        if (bin_array[j][pos] != bit)
+        {
+            if (isOx && array_ox[j])
             {
                 array_ox[j] = false;
                 ox_ok--;
-                if (ox_ok == 0)
-                {
-                    auto x = 0;
-                }
+            }
+            else if(!isOx && array_co2[j])
+            {
+                array_co2[j] = false;
+                co2_ok--;
             }
         }
-        auto x = 0;
     }
 
-    auto x = 0;
+    return (isOx) ? (ox_ok) : (co2_ok);
+}
 
+uint32_t getLeft(bool isOx)
+{
+    for (uint32_t j = 0;j < array_num;j++)
+    {
+        if ((isOx && array_ox[j]) || (!isOx && array_co2[j]))
+        {
+            uint32_t retval = 0;
+            for (uint32_t i = 0;i < LEN;i++)
+            {
+                if (bin_array[j][i])
+                {
+                    retval |= (1 << (LEN - 1 - i));
+                }
+            }
+            return retval;
+        }
+    }
+    return 0;
+}
 
-
-
-
-
-
-
+void printLeft(bool isOx)
+{
+    for (uint32_t j = 0;j < array_num;j++)
+    {
+        if ((isOx && array_ox[j]) || (!isOx && array_co2[j]))
+        {
+            printf("BIN: ");
+            for (uint32_t i = 0;i < LEN;i++)
+            {
+                if (bin_array[j][i])
+                {
+                    printf("1");
+                }
+                else
+                {
+                    printf("0");
+                }
+            }
+            printf("\n");
+        }
+    }
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
