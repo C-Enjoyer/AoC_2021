@@ -14,10 +14,13 @@ using namespace std;
 
 #define SQUARE_MAX   500
 #define MATRIX_MAX     (SQUARE_MAX*SQUARE_MAX)
+#define MULT 5
 
 uint64_t fancyAlgorithm(void);
+uint64_t fancyAlgorithm2(void);
 int minDistance(void);
 int getFancyMatrixAt(int row, int col);
+int getFancyMatrixAt2(int row, int col);
 uint32_t getColFromCoord(uint32_t x, uint32_t y);
 void getCoordfromCol(uint32_t* x, uint32_t* y, uint32_t col);
 bool neighbors(uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1);
@@ -25,8 +28,9 @@ bool neighbors(uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1);
 uint32_t grid[SQUARE_MAX][SQUARE_MAX] = { 0 };
 uint32_t x_max = 0;
 uint32_t y_max = 0;
+uint32_t x_max_div = 0;
+uint32_t y_max_div = 0;
 
-/*uint32_t matrix[MATRIX_MAX][MATRIX_MAX] = { 0 };*/
 int matrix_len = 0;
 int dist[MATRIX_MAX];
 bool sptSet[MATRIX_MAX];
@@ -53,10 +57,21 @@ int main()
         }
     }
 
-    matrix_len = x_max * y_max;
-
+    //part1:
+    /*matrix_len = x_max * y_max;
     uint64_t result = fancyAlgorithm();
+    printf("%llu", result);*/
+
+    //part2:
+    x_max_div = x_max;
+    y_max_div = y_max;
+    x_max *= MULT;
+    y_max *= MULT;
+
+    matrix_len = x_max * y_max;
+    uint64_t result = fancyAlgorithm2();
     printf("%llu", result);
+
 
 }
 
@@ -106,6 +121,41 @@ uint64_t fancyAlgorithm(void)
     return dist[matrix_len - 1];
 }
 
+uint64_t fancyAlgorithm2(void)
+{
+    int src = 0;
+
+    for (int i = 0; i < matrix_len; i++)
+    {
+        dist[i] = INT_MAX;
+        sptSet[i] = false;
+    }
+
+    dist[src] = 0;
+
+    for (int count = 0; count < matrix_len - 1; count++)
+    {
+        int u = minDistance();
+        sptSet[u] = true;
+
+        for (int v = 0; v < matrix_len; v++)
+        {
+            if (!sptSet[v] && getFancyMatrixAt2(u, v) && dist[u] != INT_MAX
+                && dist[u] + getFancyMatrixAt2(u, v) < dist[v])
+            {
+                dist[v] = dist[u] + getFancyMatrixAt2(u, v);
+            }
+        }
+
+        if (count % 5000 == 0)
+        {
+            printf("Iterations: %d\n", count);
+        }
+    }
+
+    return dist[matrix_len - 1];
+}
+
 int getFancyMatrixAt(int row, int col)
 {
     //test if neighbors
@@ -120,6 +170,29 @@ int getFancyMatrixAt(int row, int col)
     if (neighbors(x0, y0, x1, y1))
     {
         return grid[x1][y1];
+    }
+    return 0;
+}
+
+int getFancyMatrixAt2(int row, int col)
+{
+    //test if neighbors
+    uint32_t x0 = 0;
+    uint32_t y0 = 0;
+    uint32_t x1 = 0;
+    uint32_t y1 = 0;
+
+    getCoordfromCol(&x0, &y0, row);
+    getCoordfromCol(&x1, &y1, col);
+
+    if (neighbors(x0, y0, x1, y1))
+    {
+        uint64_t ret = grid[x1 % x_max_div][y1 % y_max_div] + (x1 / x_max_div) + (y1 / y_max_div);
+        if (ret > 9)
+        {
+            ret = ret - 9;
+        }
+        return ret;
     }
     return 0;
 }
@@ -166,36 +239,6 @@ bool neighbors(uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1)
 
     return false;
 }
-
-
-/*
-void convertToFancyMatrix(void)
-{
-    for (uint32_t y = 0; y < y_max; y++)
-    {
-        for (uint32_t x = 0; x < x_max; x++)
-        {
-            if (x > 0)
-            {
-                matrix[getColFromCoord(x-1,y)][getColFromCoord(x,y)] = grid[x][y];
-            }
-            if (x < x_max - 1)
-            {
-                matrix[getColFromCoord(x+1, y)][getColFromCoord(x, y)] = grid[x][y];
-            }
-            if (y > 0)
-            {
-                matrix[getColFromCoord(x, y-1)][getColFromCoord(x, y)] = grid[x][y];
-            }
-            if (y < y_max - 1)
-            {
-                matrix[getColFromCoord(x, y+1)][getColFromCoord(x, y)] = grid[x][y];
-            }
-        }
-    }
-    matrix_len = x_max * y_max;
-}
-*/
 
 uint32_t getColFromCoord(uint32_t x, uint32_t y)
 {
