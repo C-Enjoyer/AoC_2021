@@ -9,15 +9,17 @@
 
 using namespace std;
 
-#define MAX_NUMS 100
+#define MAX_NUMS 20
+#define ID_NONE 255
+#define MAX_RES 500
 
 uint32_t getNum(string s);
-void handlePacket(string s, uint32_t from, uint32_t to);
-uint32_t handlePackets(string s, uint32_t from, uint32_t num);
-uint32_t handleLit(string s, uint32_t from);
-uint32_t handleOp(string s, uint32_t from);
+double handleResult(double* res, uint32_t res_num, uint32_t id);
+double handlePacket(string s, uint32_t* from, uint32_t to, uint32_t id);
+double handlePackets(string s, uint32_t* from, uint32_t num, uint32_t id);
+double handleLit(string s, uint32_t* from);
+double handleOp(string s, uint32_t* from, uint32_t id);
 void convertToBinString(void);
-uint32_t get4Padded(uint32_t num);
 
 string in;
 string bin;
@@ -44,9 +46,13 @@ int main()
 
     
     convertToBinString();
-    handlePacket(bin, 0, bin.length());
+    uint32_t from = 0;
+    double result = handlePacket(bin, &from, bin.length(), ID_NONE);
 
-    printf("Result: %llu", sum);
+    //part1:
+    printf("Result: %llu\n", sum);
+    //part2:
+    printf("Result: %f\n", result);
 }
 
 void convertToBinString(void)
@@ -96,114 +102,225 @@ uint32_t getNum(string s)
     return stoi(s, 0, 2);
 }
 
-void handlePacket(string s, uint32_t from, uint32_t to)
+double handleResult(double* res, uint32_t res_num, uint32_t id)
 {
-    uint32_t start = from;
+    if (id == ID_NONE)
+    {
+        return res[0];
+    }
+    if (id == 0)
+    {
+        double sum = 0;
+        for (uint32_t i = 0;i < res_num;i++)
+        {
+            sum += res[i];
+        }
+        return sum;
+    }
+    if (id == 1)
+    {
+        double prod = 1;
+        for (uint32_t i = 0;i < res_num;i++)
+        {
+            prod *= res[i];
+        }
+        return prod;
+    }
+    if (id == 2)
+    {
+        double minVal = DBL_MAX;
+        for (uint32_t i = 0;i < res_num;i++)
+        {
+            minVal = min(minVal, res[i]);
+        }
+        return minVal;
+    }
+    if (id == 3)
+    {
+        double maxVal = DBL_MIN;
+        for (uint32_t i = 0;i < res_num;i++)
+        {
+            maxVal = max(maxVal, res[i]);
+        }
+        return maxVal;
+    }
+    if (id == 5)
+    {
+        if (res[0] > res[1])
+        {
+            return 1;
+        }
+        return 0;
+    }
+    if (id == 6)
+    {
+        if (res[0] < res[1])
+        {
+            return 1;
+        }
+        return 0;
+    }
+    if (id == 7)
+    {
+        if (res[0] == res[1])
+        {
+            return 1;
+        }
+        return 0;
+    }
+    return 0;
+}
+
+double handlePacket(string s, uint32_t* from, uint32_t to, uint32_t id)
+{
+    double res[MAX_RES] = { 0 };
+    uint32_t res_num = 0;
+    printf("Packet0 from %lu\n", *from);
     while (1)
     {
-        uint32_t version = getNum(s.substr(start, 3));
-        uint32_t typeID = getNum(s.substr(start+3, 3));
+        bool packetLeft = false;
+        for (uint32_t i = *from; i < s.length(); i++)
+        {
+            if (s.c_str()[i] == '1')
+            {
+                packetLeft = true;
+                break;
+            }
+        }
+
+        if (!packetLeft)
+        {
+            break;
+        }
+
+        uint32_t version = getNum(s.substr(*from, 3));
+        *from += 3;
+        uint32_t typeID = getNum(s.substr(*from, 3));
+        *from += 3;
+
+        printf("Packet0 with version: %lu\n", version);
 
         sum += version;
-        start += 6;
+        
 
         if (typeID == 4)
         {
-            start = handleLit(s, start);
+            res[res_num] = handleLit(s, from);
+            res_num++;
         }
         else
         {
-            start = handleOp(s, start);
+            res[res_num] = handleOp(s, from, typeID);
+            res_num++;
         }
 
-        start = (get4Padded(start - 1) + 1);
-
-        if (start >= to || start >= s.length())
+        if (*from >= to || *from >= s.length())
         {
             break;
         }
     }
+    
+
+    return handleResult(res, res_num, id);
 }
 
-uint32_t handlePackets(string s, uint32_t from, uint32_t num)
+double handlePackets(string s, uint32_t* from, uint32_t num, uint32_t id)
 {
-    uint32_t pos = from;
+    double res[MAX_RES] = { 0 };
+    uint32_t res_num = 0;
+
     for (uint32_t i = 0;i < num;i++)
     {
-        uint32_t version = getNum(s.substr(pos, 3));
-        uint32_t typeID = getNum(s.substr(pos + 3, 3));
+        uint32_t version = getNum(s.substr(*from, 3));
+        *from += 3;
+        uint32_t typeID = getNum(s.substr(*from, 3));
+        *from += 3;
+
+        printf("Packet1 with version: %lu\n", version);
 
         sum += version;
 
         if (typeID == 4)
         {
-            pos = handleLit(s, pos + 6);
+            res[res_num] = handleLit(s, from);
+            res_num++;
         }
         else
         {
-            pos = handleOp(s, pos + 6);
+            res[res_num] = handleOp(s, from, typeID);
+            res_num++;
         }
     }
-    return pos;
+    return handleResult(res, res_num, id);
 }
 
-uint32_t handleLit(string s, uint32_t from)
+double handleLit(string s, uint32_t* from)
 {
-    uint32_t pos = from;
+    double result = 0;
     uint16_t nums[MAX_NUMS] = { 0 };
     uint32_t nums_num = 0;
+
     while (1)
     {
-        uint32_t pre = getNum(s.substr(pos, 1));
+        uint32_t pre = getNum(s.substr(*from, 1));
+        *from += 1;
 
         if (pre == 1)
         {
-            nums[nums_num] = getNum(s.substr(pos + 1, 4));
+            nums[nums_num] = getNum(s.substr(*from, 4));
             nums_num++;
-            pos += 5;
+            *from += 4;
         }
         else
         {
-            nums[nums_num] = getNum(s.substr(pos + 1, 4));
+            nums[nums_num] = getNum(s.substr(*from, 4));
             nums_num++;
-            pos += 5;
+            *from += 4;
             break;
         }
     }
 
-    return (get4Padded(pos-1) + 1);
+    uint64_t number = 0;
+
+    for (int i = 0;i < nums_num; i++)
+    {
+        for (uint8_t j = 0;j < 4;j++)
+        {
+            if (nums[i] & (1 << j))
+            {
+                uint32_t shift = (4 * ((nums_num - 1) - i) + j);
+                number |= (1ULL << shift);
+            }
+        }
+    }
+
+    printf("Lit with %llu\n", number);
+
+    return (double) number;
 }
 
-uint32_t handleOp(string s, uint32_t from)
+double handleOp(string s, uint32_t* from, uint32_t id)
 {
-    uint32_t pos = from;
-    uint32_t lenghtTypeID = getNum(s.substr(pos, 1));
+    uint32_t lenghtTypeID = getNum(s.substr(*from, 1));
+    *from += 1;
     if (lenghtTypeID == 0)
     {
-        uint32_t length = getNum(s.substr(pos+1, 15));
-        handlePacket(s, pos+16, pos + 16 + length);
-        return (get4Padded(pos + length + 1 + 15 - 1) + 1);
+        uint32_t length = getNum(s.substr(*from, 15));
+        *from += 15;
+        printf("Op with length: %lu\n", length);
+        if (length >= s.length())
+        {
+            auto x = 0;
+        }
+        return handlePacket(s, from, *from + length, id);
     }
     else
     {
-        uint32_t subPackets = getNum(s.substr(pos + 1, 11));
-        return (get4Padded((handlePackets(s, pos + 12, subPackets) + 1 + 11 - 1)) + 1);
+        uint32_t subPackets = getNum(s.substr(*from, 11));
+        *from += 11;
+        printf("Op with subPackets: %lu\n", subPackets);
+        return handlePackets(s, from, subPackets, id);
     }
-}
-
-uint32_t get4Padded(uint32_t num)
-{
-    uint8_t mod4 = num % 4;
-
-    if (mod4 == 0)
-    {
-        return num;
-    }
-    else
-    {
-        return (num + (4 - (mod4)));
-    }
-    
 }
 
 
