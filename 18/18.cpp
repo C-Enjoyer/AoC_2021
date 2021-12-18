@@ -43,21 +43,30 @@ uint32_t findRightMost(uint32_t num);
 void split(uint32_t num);
 int getHigher9(uint32_t num);
 uint64_t getMagnitude(uint32_t num);
+void restoreArr(void);
 
-num_t nums[NUM_MAX] = { 0 };
+num_t nums[NUM_MAX][2] = { 0 };
 uint32_t nums_num = 0;
+uint32_t nums_orig = 0;
 uint32_t rows = 0;
 
 int main()
 {
     for (uint32_t i = 0;i < NUM_MAX;i++)
     {
-        nums[i].existent = false;
-        nums[i].hid = NONE;
-        nums[i].lid[LEFT] = NONE;
-        nums[i].lid[RIGHT] = NONE;
-        nums[i].l = NONE;
-        nums[i].r = NONE;
+        nums[i][0].existent = false;
+        nums[i][0].hid = NONE;
+        nums[i][0].lid[LEFT] = NONE;
+        nums[i][0].lid[RIGHT] = NONE;
+        nums[i][0].l = NONE;
+        nums[i][0].r = NONE;
+
+        nums[i][1].existent = false;
+        nums[i][1].hid = NONE;
+        nums[i][1].lid[LEFT] = NONE;
+        nums[i][1].lid[RIGHT] = NONE;
+        nums[i][1].l = NONE;
+        nums[i][1].r = NONE;
     }
 
     while (1)
@@ -76,8 +85,16 @@ int main()
         }
     }
 
+    nums_orig = nums_num;
+
+    for (uint32_t i = 0;i < nums_orig;i++)
+    {
+        nums[i][1] = nums[i][0];
+    }
+
     string s;
-    for (uint32_t i = 1;i < rows;i++)
+    //part 1:
+    /*for (uint32_t i = 1;i < rows;i++)
     {
         addRows(0, i);
         printRow(&s, 0);
@@ -93,28 +110,64 @@ int main()
     uint32_t master = getRowMaster(0);
     uint64_t result = getMagnitude(master);
 
-    printf("%llu", result);
+    printf("%llu", result);*/
+
+    //part 2:
+
+    uint64_t result = 0;
+
+    for (uint32_t i = 0;i < rows;i++)
+    {
+        for (uint32_t j = 0;j < rows;j++)
+        {
+            if (i != j)
+            {
+                addRows(i, j);
+                reduceRow(i);
+                
+                printRow(&s, i);
+                printf("%s\n", s.c_str());
+                s.clear();
+
+                uint64_t res = getMagnitude(getRowMaster(i));
+                printf("Result for %d + %d = %llu\n", i,j,res);
+                result = max(result, res);
+                restoreArr();
+            }
+        }
+    }
+
+    printf("Result: %llu", result);
+}
+
+void restoreArr(void)
+{
+    for (uint32_t i = 0;i < nums_orig;i++)
+    {
+        nums[i][0] = nums[i][1];
+    }
+    nums_num = nums_orig;
 }
 
 uint64_t getMagnitude(uint32_t num)
 {
     uint64_t result = 0;
-    if (nums[num].l != NONE)
+    if (nums[num][0].l != NONE)
     {
-        result += nums[num].l * 3;
+        result += nums[num][0].l * 3;
     }
     else
     {
-        result += getMagnitude(nums[num].lid[LEFT]) * 3;
+        result += getMagnitude(nums[num][0].lid[LEFT]) * 3;
     }
 
-    if (nums[num].r != NONE)
+    if (nums[num][0].r != NONE)
     {
-        result += nums[num].r * 2;
+        result += nums[num][0].r * 2;
     }
     else
     {
-        result += getMagnitude(nums[num].lid[RIGHT]) * 2;
+        result += getMagnitude(nums[num][0].lid[RIGHT]) * 2;
     }
 
     return result;
@@ -153,55 +206,55 @@ void reduceRow(uint32_t row)
 
 void split(uint32_t num)
 {
-    side_t s = (nums[num].l > 9) ? (LEFT) : (RIGHT);
+    side_t s = (nums[num][0].l > 9) ? (LEFT) : (RIGHT);
     uint32_t numToSplit = 0;
     uint32_t l = 0, r = 0;;
 
     if (s == LEFT)
     {
-        numToSplit = nums[num].l;
-        nums[num].l = NONE;
+        numToSplit = nums[num][0].l;
+        nums[num][0].l = NONE;
     }
     else
     {
-        numToSplit = nums[num].r;
-        nums[num].r = NONE;
+        numToSplit = nums[num][0].r;
+        nums[num][0].r = NONE;
     }
 
     r = (numToSplit / 2) + (numToSplit % 2);
     l = numToSplit - r;
     
 
-    nums[num].lid[s] = nums_num;
-    nums[nums_num].existent = true;
-    nums[nums_num].hid = num;
-    nums[nums_num].l = l;
-    nums[nums_num].r = r;
-    nums[nums_num].row = nums[num].row;
-    nums[nums_num].lid[LEFT] = NONE;
-    nums[nums_num].lid[RIGHT] = NONE;
+    nums[num][0].lid[s] = nums_num;
+    nums[nums_num][0].existent = true;
+    nums[nums_num][0].hid = num;
+    nums[nums_num][0].l = l;
+    nums[nums_num][0].r = r;
+    nums[nums_num][0].row = nums[num][0].row;
+    nums[nums_num][0].lid[LEFT] = NONE;
+    nums[nums_num][0].lid[RIGHT] = NONE;
     nums_num++;
 }
 
 int getHigher9(uint32_t num)
 {
-    if (nums[num].l > 9)
+    if (nums[num][0].l > 9)
     {
         return num;
     }
-    else if (nums[num].l == NONE)
+    else if (nums[num][0].l == NONE)
     {
-        int res = getHigher9(nums[num].lid[LEFT]);
+        int res = getHigher9(nums[num][0].lid[LEFT]);
         if (res != -1) return res;
     }
    
-    if (nums[num].r > 9)
+    if (nums[num][0].r > 9)
     {
         return num;
     }
-    else if (nums[num].r == NONE)
+    else if (nums[num][0].r == NONE)
     {
-        int res = getHigher9(nums[num].lid[RIGHT]);
+        int res = getHigher9(nums[num][0].lid[RIGHT]);
         if (res != -1) return res;
     }
 
@@ -210,25 +263,25 @@ int getHigher9(uint32_t num)
 
 void explode(uint32_t num)
 {
-    explode(num, nums[num].l, LEFT);
-    explode(num, nums[num].r, RIGHT);
-    nums[num].existent = false;
+    explode(num, nums[num][0].l, LEFT);
+    explode(num, nums[num][0].r, RIGHT);
+    nums[num][0].existent = false;
 
-    if (nums[nums[num].hid].lid[LEFT] == num)
+    if (nums[nums[num][0].hid][0].lid[LEFT] == num)
     {
-        nums[nums[num].hid].lid[LEFT] = NONE;
-        nums[nums[num].hid].l = 0;
+        nums[nums[num][0].hid][0].lid[LEFT] = NONE;
+        nums[nums[num][0].hid][0].l = 0;
     }
-    else if (nums[nums[num].hid].lid[RIGHT] == num)
+    else if (nums[nums[num][0].hid][0].lid[RIGHT] == num)
     {
-        nums[nums[num].hid].lid[RIGHT] = NONE;
-        nums[nums[num].hid].r = 0;
+        nums[nums[num][0].hid][0].lid[RIGHT] = NONE;
+        nums[nums[num][0].hid][0].r = 0;
     }
 }
 
 void explode(uint32_t num, uint32_t expval, side_t si)
 {
-    int upper = nums[num].hid;
+    int upper = nums[num][0].hid;
 
     if (upper == NONE)
     {
@@ -237,16 +290,16 @@ void explode(uint32_t num, uint32_t expval, side_t si)
 
     if (si == LEFT)
     {
-        if (nums[upper].lid[RIGHT] == num) //[1,[3,4]] or [[1,2],[3,4]] => [3,4] explodes
+        if (nums[upper][0].lid[RIGHT] == num) //[1,[3,4]] or [[1,2],[3,4]] => [3,4] explodes
         {
-            if (nums[upper].l != NONE) //[1, [3, 4]]
+            if (nums[upper][0].l != NONE) //[1, [3, 4]]
             {
-                nums[upper].l += expval;
+                nums[upper][0].l += expval;
             }
             else //[[1, 2], [3, 4]]
             {
                 //explode(nums[upper].lid[LEFT], expval, si);
-                nums[findRightMost(nums[upper].lid[LEFT])].r += expval;
+                nums[findRightMost(nums[upper][0].lid[LEFT])][0].r += expval;
             }
         }
         else //[[1,2],4] or [[1,2]] or [[1,2],[3,4]] => [1,2] explodes
@@ -256,15 +309,15 @@ void explode(uint32_t num, uint32_t expval, side_t si)
     }
     else if(si == RIGHT)
     {
-        if (nums[upper].lid[LEFT] == num) //[[1,2],4] or [[1,2],[3,4]] => [1,2] explodes
+        if (nums[upper][0].lid[LEFT] == num) //[[1,2],4] or [[1,2],[3,4]] => [1,2] explodes
         {
-            if (nums[upper].r != NONE) //[[1,2],4]
+            if (nums[upper][0].r != NONE) //[[1,2],4]
             {
-                nums[upper].r += expval;
+                nums[upper][0].r += expval;
             }
             else //[[1, 2], [3, 4]]
             {
-                nums[findLeftMost(nums[upper].lid[RIGHT])].l += expval;
+                nums[findLeftMost(nums[upper][0].lid[RIGHT])][0].l += expval;
             }
         }
         else //[1,[3,4]] or [[3,4]] or [[1,2], [3, 4]] => [3,4] explodes
@@ -276,51 +329,51 @@ void explode(uint32_t num, uint32_t expval, side_t si)
 
 uint32_t findLeftMost(uint32_t num)
 {
-    if (nums[num].l != NONE)
+    if (nums[num][0].l != NONE)
     {
         return num;
     }
     
-    return findLeftMost(nums[num].lid[LEFT]);
+    return findLeftMost(nums[num][0].lid[LEFT]);
 }
 
 uint32_t findRightMost(uint32_t num)
 {
-    if (nums[num].r != NONE)
+    if (nums[num][0].r != NONE)
     {
         return num;
     }
 
-    return findRightMost(nums[num].lid[RIGHT]);
+    return findRightMost(nums[num][0].lid[RIGHT]);
 }
 
 int getbelow4Layer(uint32_t* layer, uint32_t num)
 {
-    if (nums[num].lid[LEFT] != NONE)
+    if (nums[num][0].lid[LEFT] != NONE)
     {
         if (*layer >= 4 - 1)
         {
-            return nums[num].lid[LEFT];
+            return nums[num][0].lid[LEFT];
         }
         else
         {
             (*layer)++;
-            int res = getbelow4Layer(layer, nums[num].lid[LEFT]);
+            int res = getbelow4Layer(layer, nums[num][0].lid[LEFT]);
             if (res != NONE) return res;
             else (*layer)--;
         }
     }
 
-    if (nums[num].lid[RIGHT] != NONE)
+    if (nums[num][0].lid[RIGHT] != NONE)
     {
         if (*layer >= 4 - 1)
         {
-            return nums[num].lid[RIGHT];
+            return nums[num][0].lid[RIGHT];
         }
         else
         {
             (*layer)++;
-            int res = getbelow4Layer(layer, nums[num].lid[RIGHT]);
+            int res = getbelow4Layer(layer, nums[num][0].lid[RIGHT]);
             if (res != NONE) return res;
             else (*layer)--;
         }
@@ -338,24 +391,24 @@ void printNum(string *s, uint32_t num)
 {
     s->append("[");
 
-    if (nums[num].lid[LEFT] != NONE)
+    if (nums[num][0].lid[LEFT] != NONE)
     {
-        printNum(s, nums[num].lid[LEFT]);
+        printNum(s, nums[num][0].lid[LEFT]);
     }
     else
     {
-        s->append(to_string(nums[num].l));
+        s->append(to_string(nums[num][0].l));
     }
 
     s->append(",");
 
-    if (nums[num].lid[RIGHT] != NONE)
+    if (nums[num][0].lid[RIGHT] != NONE)
     {
-        printNum(s, nums[num].lid[RIGHT]);
+        printNum(s, nums[num][0].lid[RIGHT]);
     }
     else
     {
-        s->append(to_string(nums[num].r));
+        s->append(to_string(nums[num][0].r));
     }
 
     s->append("]");
@@ -366,19 +419,19 @@ void addRows(uint32_t row0, uint32_t row1)
     uint32_t row0Master = getRowMaster(row0);
     uint32_t row1Master = getRowMaster(row1);
 
-    nums[nums_num].existent = true;
-    nums[nums_num].hid = NONE;
-    nums[nums_num].lid[LEFT] = row0Master;
-    nums[nums_num].lid[RIGHT] = row1Master;
-    nums[nums_num].row = row0;
-    nums[row0Master].hid = nums_num;
-    nums[row1Master].hid = nums_num;
+    nums[nums_num][0].existent = true;
+    nums[nums_num][0].hid = NONE;
+    nums[nums_num][0].lid[LEFT] = row0Master;
+    nums[nums_num][0].lid[RIGHT] = row1Master;
+    nums[nums_num][0].row = row0;
+    nums[row0Master][0].hid = nums_num;
+    nums[row1Master][0].hid = nums_num;
 
     for (uint32_t i = 0;i < nums_num;i++)
     {
-        if (nums[i].existent && nums[i].row == row1)
+        if (nums[i][0].existent && nums[i][0].row == row1)
         {
-            nums[i].row = row0;
+            nums[i][0].row = row0;
         }
     }
 
@@ -389,7 +442,7 @@ uint32_t getRowMaster(uint32_t row)
 {
     for (uint32_t i = 0;i < nums_num;i++)
     {
-        if (nums[i].existent && nums[i].row == row && nums[i].hid == NONE)
+        if (nums[i][0].existent && nums[i][0].row == row && nums[i][0].hid == NONE)
         {
             return i;
         }
@@ -448,28 +501,28 @@ uint32_t parsePair(string* s, uint32_t startpos, uint32_t len)
     string l = pair.substr(1, comma - 1);
     string r = pair.substr(comma + 1, pair.length() - 2 - comma);
 
-    nums[nums_num].existent = true;
-    nums[nums_num].row = rows;
+    nums[nums_num][0].existent = true;
+    nums[nums_num][0].row = rows;
 
     if (l.find("X") == string::npos)
     {
-        nums[nums_num].l = stoi(l);
+        nums[nums_num][0].l = stoi(l);
     }
     else
     {
         uint32_t l_num = stoi(l.substr(1));
-        nums[nums_num].lid[LEFT] = l_num;
-        nums[l_num].hid = nums_num;
+        nums[nums_num][0].lid[LEFT] = l_num;
+        nums[l_num][0].hid = nums_num;
     }
     if (r.find("X") == string::npos)
     {
-        nums[nums_num].r = stoi(r);
+        nums[nums_num][0].r = stoi(r);
     }
     else
     {
         uint32_t r_num = stoi(r.substr(1));
-        nums[nums_num].lid[RIGHT] = r_num;
-        nums[r_num].hid = nums_num;
+        nums[nums_num][0].lid[RIGHT] = r_num;
+        nums[r_num][0].hid = nums_num;
     }
 
     rep = "X" + to_string(nums_num);
