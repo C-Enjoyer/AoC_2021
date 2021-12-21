@@ -1,0 +1,2 @@
+D:\Projekte\AdventCode\AoC_2021\20\Debug\20.exe
+D:\Projekte\AdventCode\AoC_2021\20\Debug\20.pdb
