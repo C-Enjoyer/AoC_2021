@@ -9,207 +9,138 @@
 
 using namespace std;
 
-#define LUT_MAX 1000
-#define PTS_MAX 10000
+void doStep(void);
+uint32_t count_on(void);
 
-typedef struct pt
-{
-    int x, y;
-}pt_t;
+#define SIZE 210
+#define X0 55
+#define Y0 55
+#define LUT_SIZE 512
 
-bool isLight(int xpos, int ypos);
-void addLight(int xpos, int ypos);
-void removeLight(int xpos, int ypos);
-void doEnhancement(void);
-void printImage(void);
-
-bool lut[LUT_MAX] = { 0 };
-uint32_t lut_num = 0;
-
-pt_t pts[PTS_MAX] = { 0 };
-uint32_t pts_num = 0;
-
-pt_t pts_in[PTS_MAX] = { 0 };
-uint32_t pts_in_num = 0;
-
-int xmin = 0, xmax = 0;
-int ymin = 0, ymax = 0;
+char lut[LUT_SIZE + 1];
+char grid[2][SIZE][SIZE];
+uint8_t gi; /* index of currently active grid */
+int xmin = X0, xmax = X0 - 1, ymin = Y0, ymax = Y0 - 1;
 
 int main()
 {
-    bool image = false;
-    while (1)
-    {
-        string lineIn;
-        getline(cin, lineIn);
+	int len;
+	bool first = true;
+	while (1)
+	{
+		string lineIn;
+		getline(cin, lineIn);
+		if (lineIn.length())
+		{
+			if (first)
+			{
+				strcpy(lut, lineIn.c_str());
+				len = strlen(lut);
+				for (uint32_t i = 0; i < len; i++)
+				{
+					lut[i] = lut[i] == '#';
+				}
+				// account for empty cell rule
+				if (lut[0])
+				{
+					memset(grid[1], 1, sizeof(grid[1]));
+				}
+			}
+			else
+			{
+				strcpy(&grid[0][ymax + 1][X0], lineIn.c_str());
+				len = (int)strlen(&grid[0][ymax + 1][X0]);
+				xmax = max(xmax, X0 + len - 1);
+				ymax++;
+				for (uint32_t i = 0; i < len; i++)
+				{
+					grid[0][ymax][X0 + i] = grid[0][ymax][X0 + i] == '#';
+				}
+			}
+		}
+		else
+		{
+			if (first)
+			{
+				first = false;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
 
-        if (lineIn.length())
-        {
-            if (!image)
-            {
-                for (uint32_t i = 0;i < lineIn.length();i++)
-                {
-                    lut[i] = (lineIn.c_str()[i] == '#') ? (true) : (false);
-                }
-                lut_num = lineIn.length();
-            }
-            else
-            {
-                for (uint32_t i = 0;i < lineIn.length();i++)
-                {
-                    if (lineIn.c_str()[i] == '#')
-                    {
-                        pts[pts_num].x = i;
-                        pts[pts_num].y = ymax;
-                        pts_num++;
-                        pts_in[pts_in_num].x = i;
-                        pts_in[pts_in_num].y = ymax;
-                        pts_in_num++;
-                    }
-                }
-                xmax = lineIn.length() - 1;
-                ymax++;
-            }
-        }
-        else
-        {
-            if (!image)
-            {
-                image = true;
-            }
-            else
-            {
-                break;
-            }
-        }
-    }
-    ymax--;
+	//part1:
+	/*
+	for (uint32_t i = 0; i < 2; i++)
+	{ 
+		doStep();
+	}*/
 
-    //printImage();
-    //printf("\n");
-    printf("Lights: %d\n", pts_num);
+	//part2:
+	for (uint32_t i = 0; i < 50; i++)
+	{
+		doStep();
+	}
+	
+	uint32_t result = count_on();
+	printf("Result : %d", result);
+	
 
-    for (uint32_t i = 0;i < 2;i++)
-    {
-        doEnhancement();
-        //printImage();
-        //printf("\n");
-        printf("Lights: %d\n", pts_num);
-    }
 
-    
-    
+	/*for (uint32_t i = 0; i < 50; i++)
+	{
+		doStep();
+	} 
+	p2 = count_on();*/
 }
 
-void doEnhancement(void)
+void doStep(void)
 {
-    xmin--;
-    ymin--;
-    xmax++;
-    ymax++;
+	int x, y;
 
-    for (int x = xmin;x <= xmax;x++)
-    {
-        for (int y = ymin;y <= ymax;y++)
-        {
-            uint32_t num = 0;
-
-            if (isLight(x-1, y-1))      num |= (1 << 8);
-            if (isLight(x, y-1))        num |= (1 << 7);
-            if (isLight(x+1, y-1))      num |= (1 << 6);
-            if (isLight(x-1, y))        num |= (1 << 5);
-            if (isLight(x, y))          num |= (1 << 4);
-            if (isLight(x+1, y))        num |= (1 << 3);
-            if (isLight(x-1, y+1))      num |= (1 << 2);
-            if (isLight(x, y+1))        num |= (1 << 1);
-            if (isLight(x+1, y+1))      num |= (1 << 0);
-
-            if (lut[num])
-            {
-                addLight(x, y);
-            }
-            else
-            {
-                removeLight(x, y);
-            }
-        }
-    }
+	for (y = ymin - 1; y <= ymax + 1; y++)
+	{
+		for (x = xmin - 1; x <= xmax + 1; x++)
+		{
+			grid[!gi][y][x] = lut[
+			grid[gi][y - 1][x - 1] << 8 |
+			grid[gi][y - 1][x] << 7 |
+			grid[gi][y - 1][x + 1] << 6 |
+			grid[gi][y][x - 1] << 5 |
+			grid[gi][y][x] << 4 |
+			grid[gi][y][x + 1] << 3 |
+			grid[gi][y + 1][x - 1] << 2 |
+			grid[gi][y + 1][x] << 1 |
+			grid[gi][y + 1][x + 1]];
+		}
+	}
 
 
 
-
-    for (uint32_t i = 0;i < PTS_MAX;i++)
-    {
-        pts_in[i].x = pts[i].x;
-        pts_in[i].y = pts[i].y;
-    }
-    pts_in_num = pts_num;
+	gi = !gi;
+	xmin--; xmax++;
+	ymin--; ymax++;
 }
 
-void addLight(int xpos, int ypos)
+uint32_t count_on(void)
 {
-    if (!isLight(xpos, ypos))
-    {
-        pts[pts_num].x = xpos;
-        pts[pts_num].y = ypos;
-        pts_num++;
-    }
+	uint32_t num = 0;
+
+	for (int y = ymin; y <= ymax; y++)
+	{
+		for (int x = xmin; x <= xmax; x++)
+		{
+			num += grid[gi][y][x];
+		}
+	}
+
+	return num;
 }
 
-void removeLight(int xpos, int ypos)
-{
-    bool found = false;
-    uint32_t foundIndex = 0;
-    for (uint32_t i = 0;i < pts_num;i++)
-    {
-        if (pts[i].x == xpos && pts[i].y == ypos)
-        {
-            found = true;
-            foundIndex = i;
-            break;
-        }
-    }
 
-    if (found)
-    {
-        pts_num--;
-        for (uint32_t i = foundIndex;i < pts_num;i++)
-        {
-            pts[i] = pts[i + 1];
-        }
-    }
-}
 
-bool isLight(int xpos, int ypos)
-{
-    for (uint32_t i = 0;i < pts_in_num;i++)
-    {
-        if (pts_in[i].x == xpos && pts_in[i].y == ypos)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-void printImage(void)
-{
-    for (int y = ymin;y <= ymax;y++)
-    {
-        for (int x = xmin;x <= xmax;x++)
-        {
-            if (isLight(x, y))
-            {
-                printf("#");
-            }
-            else
-            {
-                printf(".");
-            }
-        }
-        printf("\n");
-    }
-}
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
 // Debug program: F5 or Debug > Start Debugging menu

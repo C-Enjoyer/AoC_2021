@@ -1,2 +1,4 @@
 ﻿  20.cpp
+D:\Projekte\AdventCode\AoC_2021\20\20.cpp(39,28): warning C4018: '<': signed/unsigned mismatch
+D:\Projekte\AdventCode\AoC_2021\20\20.cpp(55,28): warning C4018: '<': signed/unsigned mismatch
   20.vcxproj -> D:\Projekte\AdventCode\AoC_2021\20\Debug\20.exe
