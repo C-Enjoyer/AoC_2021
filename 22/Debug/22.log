@@ -1,4 +1,37 @@
 ﻿  22.cpp
-D:\Projekte\AdventCode\AoC_2021\22\22.cpp(176,32): warning C4804: '<=': unsafe use of type 'bool' in operation
-D:\Projekte\AdventCode\AoC_2021\22\22.cpp(180,32): warning C4804: '<=': unsafe use of type 'bool' in operation
+D:\Projekte\AdventCode\AoC_2021\22\22.cpp(61,58): warning C4244: 'argument': conversion from 'int64_t' to 'const _Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+D:\Projekte\AdventCode\AoC_2021\22\22.cpp(72,58): warning C4244: 'argument': conversion from 'int64_t' to 'const _Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+D:\Projekte\AdventCode\AoC_2021\22\22.cpp(83,58): warning C4244: 'argument': conversion from 'int64_t' to 'const _Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+D:\Projekte\AdventCode\AoC_2021\22\22.cpp(97,59): warning C4244: 'argument': conversion from 'int64_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+D:\Projekte\AdventCode\AoC_2021\22\22.cpp(104,59): warning C4244: 'argument': conversion from 'int64_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+D:\Projekte\AdventCode\AoC_2021\22\22.cpp(114,47): warning C4244: 'argument': conversion from 'int64_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+D:\Projekte\AdventCode\AoC_2021\22\22.cpp(181,23): warning C4018: '<': signed/unsigned mismatch
+D:\Projekte\AdventCode\AoC_2021\22\22.cpp(183,27): warning C4018: '<': signed/unsigned mismatch
+D:\Projekte\AdventCode\AoC_2021\22\22.cpp(185,31): warning C4018: '<': signed/unsigned mismatch
+D:\Projekte\AdventCode\AoC_2021\22\22.cpp(200,32): warning C4804: '<=': unsafe use of type 'bool' in operation
+D:\Projekte\AdventCode\AoC_2021\22\22.cpp(204,32): warning C4804: '<=': unsafe use of type 'bool' in operation
   22.vcxproj -> D:\Projekte\AdventCode\AoC_2021\22\Debug\22.exe

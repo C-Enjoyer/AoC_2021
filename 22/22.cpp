@@ -4,12 +4,14 @@
 #include <iostream>
 #include <string>
 #include <math.h>
+#include <vector>
+#include <algorithm>
 
 #pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
 
 using namespace std;
 
-#define IN_MAX 1000
+#define IN_MAX 900
 
 typedef struct in
 {
@@ -17,10 +19,12 @@ typedef struct in
     int64_t y[2];
     int64_t z[2];
 
-    uint64_t light = 0;
-
     bool on;
 }in_t;
+
+vector<int> xs, ys, zs;
+
+bool cube[IN_MAX][IN_MAX][IN_MAX] = { 0 };
 
 bool overlap(int64_t cor0s, int64_t cor0e, int64_t cor1s, int64_t cor1e);
 
@@ -54,6 +58,7 @@ int main()
                         lines[lines_num].x[0] = atoi(lineIn.substr(start, i - start).c_str());
                         num++;
                         xmin = min(xmin, lines[lines_num].x[0]);
+                        xs.push_back(lines[lines_num].x[0]);
                     }
                     else if (num == 1)
                     {
@@ -64,6 +69,7 @@ int main()
                         lines[lines_num].y[0] = atoi(lineIn.substr(start, i - start).c_str());
                         num++;
                         ymin = min(ymin, lines[lines_num].y[0]);
+                        ys.push_back(lines[lines_num].y[0]);
                     }
                     else if(num == 3)
                     {
@@ -74,6 +80,7 @@ int main()
                         lines[lines_num].z[0] = atoi(lineIn.substr(start, i - start).c_str());
                         num++;
                         zmin = min(zmin, lines[lines_num].z[0]);
+                        zs.push_back(lines[lines_num].z[0]);
                     }
                     else if (num == 5)
                     {
@@ -87,12 +94,14 @@ int main()
                         lines[lines_num].x[1] = atoi(lineIn.substr(start, i - start).c_str());
                         num++;
                         xmax = max(xmax, lines[lines_num].x[1]);
+                        xs.push_back(lines[lines_num].x[1]+1);
                     }
                     else if (num == 3)
                     {
                         lines[lines_num].y[1] = atoi(lineIn.substr(start, i - start).c_str());
                         num++;
                         ymax = max(ymax, lines[lines_num].y[1]);
+                        ys.push_back(lines[lines_num].y[1]+1);
                     }
                 }
                 else if (lineIn.c_str()[i] == 'n')
@@ -102,6 +111,7 @@ int main()
             }
             lines[lines_num].z[1] = atoi(lineIn.substr(start).c_str());
             zmax = max(zmax, lines[lines_num].z[1]);
+            zs.push_back(lines[lines_num].z[1]+1);
             lines_num++;
             
         }
@@ -144,31 +154,45 @@ int main()
 
     //part2:
 
-    for (uint32_t i = 0;i < lines_num; i++)
-    {
-        if (!lines[i].on)
-        {
-            for (uint32_t j = 0;j < lines_num; j++)
-            {
-                if (j != i)
-                {
-                    if (lines[j].on)
-                    {
-                        bool xov = overlap(lines[i].x[0], lines[i].x[0], lines[j].x[1], lines[j].x[1]);
-                        bool yov = overlap(lines[i].y[0], lines[i].y[0], lines[j].y[1], lines[j].y[1]);
-                        bool zov = overlap(lines[i].z[0], lines[i].z[0], lines[j].z[1], lines[j].z[1]);
+    sort(xs.begin(), xs.end());
+    sort(ys.begin(), ys.end());
+    sort(zs.begin(), zs.end());
 
-                        if (xov || yov || zov)
-                        {
-                            printf("%d(off) overlaps %d(on) on: %d%d%d\n", i, j, xov, yov, zov);
-                        }
-                    }
+    for (uint32_t i=0;i<lines_num;i++)
+    {
+        int64_t xnew[2] = { lower_bound(xs.begin(), xs.end(), lines[i].x[0]) - xs.begin(), lower_bound(xs.begin(), xs.end(), lines[i].x[1] + 1) - xs.begin() };
+        int64_t ynew[2] = { lower_bound(ys.begin(), ys.end(), lines[i].y[0]) - ys.begin(), lower_bound(ys.begin(), ys.end(), lines[i].y[1] + 1) - ys.begin() };
+        int64_t znew[2] = { lower_bound(zs.begin(), zs.end(), lines[i].z[0]) - zs.begin(), lower_bound(zs.begin(), zs.end(), lines[i].z[1] + 1) - zs.begin() };
+        
+        for (int64_t x = xnew[0]; x < xnew[1]; x++)
+        {
+            for (int64_t y = ynew[0]; y < ynew[1]; y++)
+            {
+                for (int64_t z = znew[0]; z < znew[1]; z++)
+                {
+                    cube[x][y][z] = lines[i].on;
                 }
             }
         }
     }
 
+    uint64_t result = 0;
 
+    for (int x = 0; x < xs.size() - 1; x++)
+    {
+        for (int y = 0; y < ys.size() - 1; y++)
+        {
+            for (int z = 0; z < zs.size() - 1; z++)
+            {
+                if (cube[x][y][z])
+                {
+                    result += ((uint64_t)(xs[x + 1] - xs[x])) * ((uint64_t)(ys[y + 1] - ys[y])) * ((uint64_t)(zs[z + 1] - zs[z]));
+                }
+            }
+        }
+    }
+    
+    printf("%llu", result);
 }
 
 bool overlap(int64_t cor0s, int64_t cor0e, int64_t cor1s, int64_t cor1e)
