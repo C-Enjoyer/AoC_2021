@@ -1,0 +1,197 @@
+// 22.cpp : This file contains the 'main' function. Program execution begins and ends there.
+//
+
+#include <iostream>
+#include <string>
+#include <math.h>
+
+#pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
+
+using namespace std;
+
+#define IN_MAX 1000
+
+typedef struct in
+{
+    int64_t x[2];
+    int64_t y[2];
+    int64_t z[2];
+
+    uint64_t light = 0;
+
+    bool on;
+}in_t;
+
+bool overlap(int64_t cor0s, int64_t cor0e, int64_t cor1s, int64_t cor1e);
+
+in_t lines[IN_MAX] = { 0 };
+uint32_t lines_num = 0;
+
+
+int64_t xmin = INT64_MAX, xmax = INT64_MIN, ymin = INT64_MAX, ymax = INT64_MIN, zmin = INT64_MAX, zmax = INT64_MIN;
+
+int main()
+{
+    while (1)
+    {
+        string lineIn;
+        getline(cin, lineIn);
+
+        if (lineIn.length()) //overcomplicating parsing
+        {
+            uint8_t num = 0;
+            uint32_t start = 0;
+            for (uint32_t i = 0;i < lineIn.length();i++)
+            {
+                if (lineIn.c_str()[i] == '=')
+                {
+                    start = i + 1;
+                }
+                else if (lineIn.c_str()[i] == '.')
+                {
+                    if (num == 0)
+                    {
+                        lines[lines_num].x[0] = atoi(lineIn.substr(start, i - start).c_str());
+                        num++;
+                        xmin = min(xmin, lines[lines_num].x[0]);
+                    }
+                    else if (num == 1)
+                    {
+                        start = i + 1;
+                    }
+                    else if (num == 2)
+                    {
+                        lines[lines_num].y[0] = atoi(lineIn.substr(start, i - start).c_str());
+                        num++;
+                        ymin = min(ymin, lines[lines_num].y[0]);
+                    }
+                    else if(num == 3)
+                    {
+                        start = i + 1;
+                    }
+                    else if (num == 4)
+                    {
+                        lines[lines_num].z[0] = atoi(lineIn.substr(start, i - start).c_str());
+                        num++;
+                        zmin = min(zmin, lines[lines_num].z[0]);
+                    }
+                    else if (num == 5)
+                    {
+                        start = i + 1;
+                    }
+                }
+                else if (lineIn.c_str()[i] == ',')
+                {
+                    if (num == 1)
+                    {
+                        lines[lines_num].x[1] = atoi(lineIn.substr(start, i - start).c_str());
+                        num++;
+                        xmax = max(xmax, lines[lines_num].x[1]);
+                    }
+                    else if (num == 3)
+                    {
+                        lines[lines_num].y[1] = atoi(lineIn.substr(start, i - start).c_str());
+                        num++;
+                        ymax = max(ymax, lines[lines_num].y[1]);
+                    }
+                }
+                else if (lineIn.c_str()[i] == 'n')
+                {
+                    lines[lines_num].on = true;
+                }
+            }
+            lines[lines_num].z[1] = atoi(lineIn.substr(start).c_str());
+            zmax = max(zmax, lines[lines_num].z[1]);
+            lines_num++;
+            
+        }
+        else
+        {
+            break;
+        }
+    }
+
+
+
+    //part 1:
+    /*uint64_t result = 0;
+
+    for (int x = -50; x <= 50; x++)
+    {
+        for (int y = -50; y <= 50; y++)
+        {
+            for (int z = -50; z <= 50; z++)
+            {
+                bool on = false;
+                for (uint32_t i = 0;i < lines_num; i++)
+                {
+                    if (lines[i].x[0] <= x && x <= lines[i].x[1] &&
+                        lines[i].y[0] <= y && y <= lines[i].y[1] &&
+                        lines[i].z[0] <= z && z <= lines[i].z[1])
+                    {
+                        on = lines[i].on;
+                    }
+                }
+                if (on)
+                {
+                    result++;
+                }
+            }
+        }
+    }
+
+    printf("%llu", result);*/
+
+    //part2:
+
+    for (uint32_t i = 0;i < lines_num; i++)
+    {
+        if (!lines[i].on)
+        {
+            for (uint32_t j = 0;j < lines_num; j++)
+            {
+                if (j != i)
+                {
+                    if (lines[j].on)
+                    {
+                        bool xov = overlap(lines[i].x[0], lines[i].x[0], lines[j].x[1], lines[j].x[1]);
+                        bool yov = overlap(lines[i].y[0], lines[i].y[0], lines[j].y[1], lines[j].y[1]);
+                        bool zov = overlap(lines[i].z[0], lines[i].z[0], lines[j].z[1], lines[j].z[1]);
+
+                        if (xov || yov || zov)
+                        {
+                            printf("%d(off) overlaps %d(on) on: %d%d%d\n", i, j, xov, yov, zov);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+}
+
+bool overlap(int64_t cor0s, int64_t cor0e, int64_t cor1s, int64_t cor1e)
+{
+    if (cor0s <= cor1s <= cor0e)
+    {
+        return true;
+    }
+    if (cor0s <= cor1e <= cor0e)
+    {
+        return true;
+    }
+    return false;
+}
+
+
+// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
+// Debug program: F5 or Debug > Start Debugging menu
+
+// Tips for Getting Started: 
+//   1. Use the Solution Explorer window to add/manage files
+//   2. Use the Team Explorer window to connect to source control
+//   3. Use the Output window to see build output and other messages
+//   4. Use the Error List window to view errors
+//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
+//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file

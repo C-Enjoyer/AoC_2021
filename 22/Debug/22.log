@@ -1,0 +1,4 @@
+﻿  22.cpp
+D:\Projekte\AdventCode\AoC_2021\22\22.cpp(176,32): warning C4804: '<=': unsafe use of type 'bool' in operation
+D:\Projekte\AdventCode\AoC_2021\22\22.cpp(180,32): warning C4804: '<=': unsafe use of type 'bool' in operation
+  22.vcxproj -> D:\Projekte\AdventCode\AoC_2021\22\Debug\22.exe
