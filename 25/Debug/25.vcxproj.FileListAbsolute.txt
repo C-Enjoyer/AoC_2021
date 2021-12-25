@@ -1,0 +1,2 @@
+D:\Programmieren\AoC_2021\25\Debug\25.exe
+D:\Programmieren\AoC_2021\25\Debug\25.pdb
