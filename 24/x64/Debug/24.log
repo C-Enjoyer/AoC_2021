@@ -1,0 +1,6 @@
+﻿  24.cpp
+D:\Programmieren\AoC_2021\24\24.cpp(137,12): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'int64_t'
+D:\Programmieren\AoC_2021\24\24.cpp(137,12): message : consider using '%lld' in the format string
+D:\Programmieren\AoC_2021\24\24.cpp(137,12): message : consider using '%Id' in the format string
+D:\Programmieren\AoC_2021\24\24.cpp(137,12): message : consider using '%I64d' in the format string
+  24.vcxproj -> D:\Programmieren\AoC_2021\24\x64\Debug\24.exe
